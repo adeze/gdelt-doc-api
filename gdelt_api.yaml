@@ -1,0 +1,241 @@
+openapi: 3.1.0
+info:
+  title: GDELT Doc & Geo 2.0 API
+  description: Unified API for querying global news coverage and geographic event data from the GDELT database.
+  version: 1.0.0
+servers:
+  - url: https://api.gdeltproject.org/api/v2
+    description: GDELT API server
+paths:
+  /doc/doc:
+    get:
+      operationId: searchDocuments
+      summary: Search global news articles
+      description: Searches the GDELT database for news articles, timelines, and images based on keywords, time filters, and other parameters.
+      parameters:
+        - name: query
+          in: query
+          required: true
+          description: Search keywords, phrases, or advanced search operators.
+          schema:
+            type: string
+        - name: mode
+          in: query
+          required: false
+          description: Determines the type of search results returned.
+          schema:
+            type: string
+            enum: 
+              - ArtList
+              - TimelineVol
+              - TimelineVolNorm
+              - TimelineTone
+              - TimelineLang
+              - timelinevolinfo
+              - tonechart
+              - imagecollageinfo
+              - imagegallery
+              - artgallery
+        - name: maxrecords
+          in: query
+          required: false
+          description: Maximum number of results to return (default `75`, max `250`).
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 250
+        - name: timespan
+          in: query
+          required: false
+          description: Time range filter (e.g., `1h`, `24h`, `7d`, `3months`, `1week`).
+          schema:
+            type: string
+        - name: startdatetime
+          in: query
+          required: false
+          description: Start date/time in `YYYYMMDDHHMMSS` format.
+          schema:
+            type: string
+        - name: enddatetime
+          in: query
+          required: false
+          description: End date/time in `YYYYMMDDHHMMSS` format.
+          schema:
+            type: string
+        - name: sort
+          in: query
+          required: false
+          description: Sorting order (`DateDesc` for latest first, `DateAsc` for oldest first).
+          schema:
+            type: string
+            enum: [DateDesc, DateAsc]
+        - name: format
+          in: query
+          required: false
+          description: Response format (`json`, `csv`, `htmltable`, `rssarchive`).
+          schema:
+            type: string
+            enum: [json, csv, htmltable, rssarchive]
+        - name: TIMELINESMOOTH
+          in: query
+          required: false
+          description: Smoothing parameter for timeline-based queries.
+          schema:
+            type: integer
+        - name: imagetag
+          in: query
+          required: false
+          description: Filters images by Google's Cloud Vision AI-tagged content.
+          schema:
+            type: string
+        - name: imagewebtag
+          in: query
+          required: false
+          description: Filters images based on captions found on web pages.
+          schema:
+            type: string
+        - name: imageocrmeta
+          in: query
+          required: false
+          description: Filters images based on OCR-extracted text or metadata.
+          schema:
+            type: string
+      responses:
+        '200':
+          description: A list of news articles or images matching the search criteria.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  articles:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        url:
+                          type: string
+                          format: uri
+                        title:
+                          type: string
+                        source:
+                          type: string
+                        datetime:
+                          type: string
+                          format: date-time
+                        language:
+                          type: string
+            text/csv:
+              schema:
+                type: string
+                description: CSV-formatted response.
+            application/rss+xml:
+              schema:
+                type: string
+                description: RSS-formatted response for web archiving.
+        '400':
+          description: Invalid request parameters.
+        '500':
+          description: Server error.
+
+  /geo/geo:
+    get:
+      operationId: searchGeoData
+      summary: Search global geographic event data
+      description: Searches the GDELT database for news events with geographic context based on keywords, time filters, and other parameters.
+      parameters:
+        - name: QUERY
+          in: query
+          required: true
+          description: Search keywords, phrases, or advanced search operators.
+          schema:
+            type: string
+        - name: MODE
+          in: query
+          required: false
+          description: Determines the type of geographic data returned.
+          schema:
+            type: string
+            enum: 
+              - PointData
+              - PointHeatmap
+              - TimelineVol
+              - TimelineVolNorm
+              - TimelineTone
+              - TimelineLang
+        - name: FORMAT
+          in: query
+          required: false
+          description: Response format (`geojson`, `csv`, `json`).
+          schema:
+            type: string
+            enum: [geojson, csv, json]
+        - name: MAXPOINTS
+          in: query
+          required: false
+          description: Maximum number of geographic points to return (default `250`, max `2500`).
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 2500
+        - name: TIMESPAN
+          in: query
+          required: false
+          description: Time range filter (e.g., `1h`, `24h`, `7d`, `3months`, `1week`).
+          schema:
+            type: string
+        - name: STARTDATETIME
+          in: query
+          required: false
+          description: Start date/time in `YYYYMMDDHHMMSS` format.
+          schema:
+            type: string
+        - name: ENDDATETIME
+          in: query
+          required: false
+          description: End date/time in `YYYYMMDDHHMMSS` format.
+          schema:
+            type: string
+        - name: SORT
+          in: query
+          required: false
+          description: Sorting order (`DateDesc` for latest first, `DateAsc` for oldest first).
+          schema:
+            type: string
+            enum: [DateDesc, DateAsc]
+      responses:
+        '200':
+          description: A list of geographic news events matching the search criteria.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  events:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        latitude:
+                          type: number
+                        longitude:
+                          type: number
+                        title:
+                          type: string
+                        source:
+                          type: string
+                        datetime:
+                          type: string
+                          format: date-time
+            text/csv:
+              schema:
+                type: string
+                description: CSV-formatted response.
+            application/geo+json:
+              schema:
+                type: object
+                description: GeoJSON-formatted response for mapping tools.
+        '400':
+          description: Invalid request parameters.
+        '500':
+          description: Server error.
